@@ -84,8 +84,11 @@ class ContainerProduct {
       console.log("catch error");
     }
     object.id = array.length + 1;
-    object.timestamp = new Date();
+    // object.timestamp = new Date();
+    object.Timestamp = new Date();
+    object.Timestamp += object.Timestamp.getTime()
     array.push(object);
+    
     let lastId = array.length + 1;
     fs.writeFileSync(this.route, JSON.stringify(array));
     this.id = lastId++;
@@ -112,6 +115,7 @@ class ContainerProduct {
         console.log(array);
       }
     });
+    return "You just deleted product with Id Number: " + x
   }
 
   edit(id, nombre, price, descripcion, foto, stock) {
@@ -144,11 +148,12 @@ class ContainerProduct {
         }
 
         element.ModificatedTimestamp = new Date();
+        element.ModificatedTimestamp += element.ModificatedTimestamp.getTime()
       }
     });
     console.log(allProducts);
     fs.writeFileSync(this.route, JSON.stringify(allProducts));
-    return allProducts;
+    return allProducts[id-1];
   }
 
   ramdom() {
@@ -196,4 +201,9 @@ router.put("/:num", (req, resp) => {
       req.body.stock
     ),
   });
+});
+
+router.delete("/:num", (req, resp) => {
+  
+  resp.json({ Eliminar: containerProduct.deleteById(req.params.num) });
 });
