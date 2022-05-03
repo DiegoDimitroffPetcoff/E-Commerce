@@ -199,7 +199,7 @@ router.put("/:num", (req, resp) => {
 });
 
 router.delete("/:num", (req, resp) => {
-  resp.json({ Eliminar: containerProduct.deleteById(req.params.num) });
+  resp.json({ ProductDeleted: containerProduct.deleteById(req.params.num) });
 });
 
 // _________________________________________________________________________
@@ -229,11 +229,10 @@ class ContainerCart {
     console.log(allProducts);
 
     if (allProducts[id] == undefined) {
-      return (allProducts = "No Products wew found in the cart");
+      return (allProducts = "No Products New found in the cart");
     }
     return allProducts[id - 1].products;
   }
-
 
   getById(x) {
     let array = [];
@@ -281,29 +280,7 @@ class ContainerCart {
     return object;
   }
 
-  // saveCart(x) {
-  //   let array = [];
-  //   let object = x;
 
-  //   try {
-  //     let data = fs.readFileSync(this.route, "utf-8");
-  //     array = JSON.parse(data);
-  //   } catch {
-  //     console.log("catch error");
-  //   }
-
-  //   object.id = array.length + 1;
-  //   // object.timestamp = new Date();
-  //   object.Timestamp = new Date();
-  //   object.Timestamp += object.Timestamp.getTime();
-
-  //   array.push(object);
-
-  //   let lastId = array.length + 1;
-  //   fs.writeFileSync(this.route, JSON.stringify(array));
-  //   this.id = lastId++;
-  //   return object;
-  // }
 
   deleteById(x) {
     let array = [];
@@ -318,14 +295,44 @@ class ContainerCart {
 
     array.forEach((element) => {
       if (element.id == y) {
-        let id = element.id - 1;
-        let removed = array.splice(id, 1);
-        console.log("ELEMENTO ELIMINADO: " + JSON.stringify(removed));
-        fs.writeFileSync(this.route, JSON.stringify(array));
-        console.log(array);
+        array.splice(element.id - 1, 1);
+
+     fs.writeFileSync(this.route, JSON.stringify(array));
+     
+      } else {
+        console.log("No Element Founded");
+        return "No Element Founded";
       }
     });
     return "You just deleted cart with Id Number: " + x;
+  }
+
+  deleteProducInTheCart(cart, product) {
+    let array = [];
+    let y = cart;
+    try {
+      let data = fs.readFileSync(this.route, "utf-8");
+      array = JSON.parse(data);
+      console.log("Ingreso por TRY");
+    } catch {
+      console.log("catch error");
+    }
+
+    array.forEach((element) => {
+      if (element.id == y) {
+        let allProducts = element.products;
+
+        allProducts.forEach((element) => {
+          if (element.id == product) {
+            allProducts.splice(element.id - 1, 1);
+          }
+        });
+
+        fs.writeFileSync(this.route, JSON.stringify(array));
+      }
+    });
+
+    return `Product Eliminate successfully`;
   }
 
   edit(id, product) {
@@ -347,8 +354,6 @@ class ContainerCart {
       fs.writeFileSync(this.route, JSON.stringify(allProducts));
       return allProducts[id - 1];
     });
-
-    return allProducts;
   }
 }
 const containerCart = new ContainerCart();
@@ -367,7 +372,6 @@ routerCart.post("/nuevoCarrito", (req, res) => {
   res.send({ CartCreated: containerCart.save(req.body) });
 });
 
-
 routerCart.post("/:num", (req, res) => {
   // UBICO EL PRODUCTO QUE QUIERO AGREGAR
   let productById = containerProduct.getById(req.body.productID);
@@ -379,14 +383,22 @@ routerCart.post("/:num", (req, res) => {
 });
 
 routerCart.get("/:num/productos", (req, resp) => {
-  resp.json({ ProductsInTheCart: containerCart.readProductInTheCart(req.params.num) });
+  resp.json({
+    ProductsInTheCart: containerCart.readProductInTheCart(req.params.num),
+  });
+});
+
+routerCart.delete("/:num", (req, resp) => {
+
+  let respond = containerCart.deleteById(req.params.num)
+  resp.json({ CartEliminate: respond });
 });
 
 
+routerCart.delete("/:num/productos/:id_prod", (req, resp) => {
+  containerCart.deleteProducInTheCart(req.params.num, req.params.id_prod);
 
-// ------------------------------------------------------------------
-
-// routerCart.delete("/:num", (req, resp) => {
-//   resp.json({ CartEliminate: containerCart.deleteById(req.params.num) });
-// });
-
+  resp.json({
+    CartEliminate: containerCart.deleteProducInTheCart(),
+  });
+});
