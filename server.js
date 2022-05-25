@@ -1,22 +1,46 @@
 const fs = require("fs");
 const express = require("express");
 const { log } = require("console");
+
 const { Router } = express;
+// --------------------------------------------------------
+const app = express();
+const handlebars = require("express-handlebars")
+app.engine(
+  "hbs",
+  handlebars.engine({
+    extname: ".hbs",
+    defaultLayout: "index.hbs",
+    layoutsDir: __dirname + "/views/layouts",
+    partialsDir: __dirname + "/views/partials/",
+  })
+);
+
+app.set("view engine", "hbs");
+app.set("views", "./views");
+app.use(express.static("./public"));
+
+
+
+
+
+
 
 const multer = require("multer");
 const { nextTick } = require("process");
 
-const app = express();
-const router = Router();
-const routerCart = Router();
+const frontHome = Router();
+const productos = Router();
+const carrito = Router();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use("/api/productos", router);
-app.use("/api/carrito", routerCart);
+app.use("/api/home", frontHome);
+app.use("/api/productos", productos);
+app.use("/api/carrito", carrito);
 
-app.use(express.static("public"));
+
 app.use("/static", express.static(__dirname + "/public"));
 
 // I desig the port, wich is gonna be 8080, and asign that port to be listened by server const
@@ -39,168 +63,188 @@ let storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
-class ContainerProduct {
-  constructor() {
-    this.route = "./productStorage.txt";
-    this.id = 1;
-  }
+// class ContainerProduct {
+//   constructor() {
+//     this.route = "./productStorage.txt";
+//     this.id = 1;
+//   }
 
-  read() {
-    let readFinal = fs.readFileSync(this.route, "utf-8");
-    let allProducts = JSON.parse(readFinal);
-    if (allProducts.length == 0) {
-      return (allProducts = "No Products founds");
-    }
-    return allProducts;
-  }
+//   read() {
+//     let readFinal = fs.readFileSync(this.route, "utf-8");
+//     let allProducts = JSON.parse(readFinal);
+//     if (allProducts.length == 0) {
+//       return (allProducts = "No Products founds");
+//     }
+//     return allProducts;
+//   }
 
-  getById(x) {
-    let array = [];
-    let y = x;
-    try {
-      let data = fs.readFileSync(this.route, "utf-8");
-      array = JSON.parse(data);
-    } catch {
-      console.log("catch error");
-    }
-    let object = null;
+//   getById(x) {
+//     let array = [];
+//     let y = x;
+//     try {
+//       let data = fs.readFileSync(this.route, "utf-8");
+//       array = JSON.parse(data);
+//     } catch {
+//       console.log("catch error");
+//     }
+//     let object = null;
 
-    array.forEach((element) => {
-      if (element.id == y) {
-        object = element;
-      }
-    });
+//     array.forEach((element) => {
+//       if (element.id == y) {
+//         object = element;
+//       }
+//     });
 
-    if (object == null) {
-      object = "Error, product not found";
-    }
-    return object;
-  }
+//     if (object == null) {
+//       object = "Error, product not found";
+//     }
+//     return object;
+//   }
 
-  save(x) {
-    let array = [];
-    let object = x;
+//   save(x) {
+//     let array = [];
+//     let object = x;
 
-    try {
-      let data = fs.readFileSync(this.route, "utf-8");
-      array = JSON.parse(data);
-    } catch {
-      console.log("catch error");
-    }
-    object.id = array.length + 1;
-    // object.timestamp = new Date();
-    object.Timestamp = new Date();
-    object.Timestamp += object.Timestamp.getTime();
-    array.push(object);
+//     try {
+//       let data = fs.readFileSync(this.route, "utf-8");
+//       array = JSON.parse(data);
+//     } catch {
+//       console.log("catch error");
+//     }
+//     object.id = array.length + 1;
+//     // object.timestamp = new Date();
+//     object.Timestamp = new Date();
+//     object.Timestamp += object.Timestamp.getTime();
+//     array.push(object);
 
-    let lastId = array.length + 1;
-    fs.writeFileSync(this.route, JSON.stringify(array));
-    this.id = lastId++;
-    return object;
-  }
+//     let lastId = array.length + 1;
+//     fs.writeFileSync(this.route, JSON.stringify(array));
+//     this.id = lastId++;
+//     return object;
+//   }
 
-  deleteById(x) {
-    let array = [];
-    let y = x;
-    try {
-      let data = fs.readFileSync(this.route, "utf-8");
-      array = JSON.parse(data);
-      console.log("Ingreso por TRY");
-    } catch {
-      console.log("catch error");
-    }
+//   deleteById(x) {
+//     let array = [];
+//     let y = x;
+//     try {
+//       let data = fs.readFileSync(this.route, "utf-8");
+//       array = JSON.parse(data);
+//       console.log("Ingreso por TRY");
+//     } catch {
+//       console.log("catch error");
+//     }
 
-    array.forEach((element) => {
-      if (element.id == y) {
-        let id = element.id - 1;
-        let removed = array.splice(id, 1);
-        console.log("ELEMENTO ELIMINADO: " + JSON.stringify(removed));
-        fs.writeFileSync(this.route, JSON.stringify(array));
-        console.log(array);
-      }
-    });
-    return "You just deleted product with Id Number: " + x;
-  }
+//     array.forEach((element) => {
+//       if (element.id == y) {
+//         let id = element.id - 1;
+//         let removed = array.splice(id, 1);
+//         console.log("ELEMENTO ELIMINADO: " + JSON.stringify(removed));
+//         fs.writeFileSync(this.route, JSON.stringify(array));
+//         console.log(array);
+//       }
+//     });
+//     return "You just deleted product with Id Number: " + x;
+//   }
 
-  edit(id, nombre, price, descripcion, foto, stock) {
-    let y = id;
-    let readFinal = fs.readFileSync(this.route, "utf-8");
-    let allProducts = JSON.parse(readFinal);
+//   edit(id, nombre, price, descripcion, foto, stock) {
+//     let y = id;
+//     let readFinal = fs.readFileSync(this.route, "utf-8");
+//     let allProducts = JSON.parse(readFinal);
 
-    console.log(allProducts);
+//     console.log(allProducts);
 
-    allProducts.forEach((element) => {
-      if (element.id == y) {
-        if (nombre !== "") {
-          element.title = nombre;
-        }
+//     allProducts.forEach((element) => {
+//       if (element.id == y) {
+//         if (nombre !== "") {
+//           element.title = nombre;
+//         }
 
-        if (price !== "") {
-          element.price = price;
-        }
+//         if (price !== "") {
+//           element.price = price;
+//         }
 
-        if (descripcion !== "") {
-          element.descripcion = descripcion;
-        }
+//         if (descripcion !== "") {
+//           element.descripcion = descripcion;
+//         }
 
-        if (foto !== "") {
-          element.foto = foto;
-        }
+//         if (foto !== "") {
+//           element.foto = foto;
+//         }
 
-        if (stock !== "") {
-          element.stock = stock;
-        }
+//         if (stock !== "") {
+//           element.stock = stock;
+//         }
 
-        element.ModificatedTimestamp = new Date();
-        element.ModificatedTimestamp += element.ModificatedTimestamp.getTime();
-      }
-    });
-    console.log(allProducts);
-    fs.writeFileSync(this.route, JSON.stringify(allProducts));
-    return allProducts[id - 1];
-  }
+//         element.ModificatedTimestamp = new Date();
+//         element.ModificatedTimestamp += element.ModificatedTimestamp.getTime();
+//       }
+//     });
+//     console.log(allProducts);
+//     fs.writeFileSync(this.route, JSON.stringify(allProducts));
+//     return allProducts[id - 1];
+//   }
 
-  ramdom() {
-    let data = fs.readFileSync(this.route, "utf-8");
-    let allProducts = JSON.parse(data);
-    let arrayAll = allProducts;
-    let aleatorio = arrayAll[Math.floor(Math.random() * arrayAll.length)];
-    return aleatorio;
-  }
-}
+//   ramdom() {
+//     let data = fs.readFileSync(this.route, "utf-8");
+//     let allProducts = JSON.parse(data);
+//     let arrayAll = allProducts;
+//     let aleatorio = arrayAll[Math.floor(Math.random() * arrayAll.length)];
+//     return aleatorio;
+//   }
+// }
 
-const containerProduct = new ContainerProduct();
+// const containerProduct = new ContainerProduct();
 
 // ----------------------------------------------------------------
 
-router.get("/", (req, resp) => {
-  resp.json({ AllProducs: containerProduct.read() });
-});
 
-router.get("/:num", (req, res) => {
-  res.json(containerProduct.getById(req.params.num));
-});
+// PRODUCTOS______________
 
-router.post("/", (req, res) => {
-  res.send({ ProductSaved: containerProduct.save(req.body) });
-});
+productos.use('/',require('./src/DAOS/productos/productosDaosArchivos'))
 
-router.put("/:num", (req, resp) => {
-  resp.json({
-    EditedProduct: containerProduct.edit(
-      req.params.num,
-      req.body.title,
-      req.body.price,
-      req.body.descripcion,
-      req.body.foto,
-      req.body.stock
-    ),
-  });
-});
+// CARRITO______________
 
-router.delete("/:num", (req, resp) => {
-  resp.json({ ProductDeleted: containerProduct.deleteById(req.params.num) });
-});
+carrito.use('/',require('./src/DAOS/carrito/carritoDaosArchivo'))
+
+
+
+
+
+
+
+
+// router.get("/", (req, resp) => {
+//   resp.json({ AllProducs: containerProduct.read() });
+// });
+
+// router.get("/:num", (req, res) => {
+//   res.json(containerProduct.getById(req.params.num));
+// });
+
+
+
+
+
+// router.post("/", (req, res) => {
+//   res.send({ ProductSaved: containerProduct.save(req.body) });
+// });
+
+// router.put("/:num", (req, resp) => {
+//   resp.json({
+//     EditedProduct: containerProduct.edit(
+//       req.params.num,
+//       req.body.title,
+//       req.body.price,
+//       req.body.descripcion,
+//       req.body.foto,
+//       req.body.stock
+//     ),
+//   });
+// });
+
+// router.delete("/:num", (req, resp) => {
+//   resp.json({ ProductDeleted: containerProduct.deleteById(req.params.num) });
+// });
 
 // _________________________________________________________________________
 
@@ -359,46 +403,79 @@ class ContainerCart {
 const containerCart = new ContainerCart();
 
 //-----------------------------------------------------------
+// routerCart.get("/:num/producto", (req, resp) => {
+//   resp.json( {
+//     ProductsInTheCart: containerCart.readProductInTheCart(req.params.num),
+//   });
+// });
 
-routerCart.get("/", (req, resp) => {
-  resp.json({ AllCartsAvailable: containerCart.readCart() });
+// routerCart.get("/", (req, resp) => {
+//   resp.json({ AllCartsAvailable: containerCart.readCart() });
+// });
+
+// routerCart.get("/:num", (req, res) => {
+//   res.json(containerCart.getById(req.params.num));
+// });
+
+// routerCart.post("/nuevoCarrito", (req, res) => {
+//   res.send({ CartCreated: containerCart.save(req.body) });
+// });
+
+// routerCart.post("/:num", (req, res) => {
+//   // UBICO EL PRODUCTO QUE QUIERO AGREGAR
+//   let productById = containerProduct.getById(req.body.productID);
+
+//   // cart : es el carro con el producto agrgado...
+//   let resultado = containerCart.edit(req.params.num, productById);
+
+//   res.json({ ProductAdded: productById });
+// });
+
+
+
+// routerCart.delete("/:num", (req, resp) => {
+
+//   let respond = containerCart.deleteById(req.params.num)
+//   resp.json({ CartEliminate: respond });
+// });
+
+
+// routerCart.delete("/:num/productos/:id_prod", (req, resp) => {
+//   containerCart.deleteProducInTheCart(req.params.num, req.params.id_prod);
+
+//   resp.json({
+//     CartEliminate: containerCart.deleteProducInTheCart(),
+//   });
+// });
+
+
+
+// __________________________________________________________________
+
+frontHome.get("/", (req, resp) => {
+  console.log(containerProduct.read());
+
+  resp.render('main', {AllProducs: containerProduct.read() });
 });
 
-routerCart.get("/:num", (req, res) => {
-  res.json(containerCart.getById(req.params.num));
-});
-
-routerCart.post("/nuevoCarrito", (req, res) => {
-  res.send({ CartCreated: containerCart.save(req.body) });
-});
-
-routerCart.post("/:num", (req, res) => {
-  // UBICO EL PRODUCTO QUE QUIERO AGREGAR
-  let productById = containerProduct.getById(req.body.productID);
-
-  // cart : es el carro con el producto agrgado...
-  let resultado = containerCart.edit(req.params.num, productById);
-
-  res.json({ ProductAdded: productById });
-});
-
-routerCart.get("/:num/productos", (req, resp) => {
-  resp.json({
-    ProductsInTheCart: containerCart.readProductInTheCart(req.params.num),
-  });
-});
-
-routerCart.delete("/:num", (req, resp) => {
-
-  let respond = containerCart.deleteById(req.params.num)
-  resp.json({ CartEliminate: respond });
+frontHome.get("/client", (req, resp) => {
+  console.log(containerProduct.read());
+  resp.render('carts', {AllProducs: containerProduct.read() });
 });
 
 
-routerCart.delete("/:num/productos/:id_prod", (req, resp) => {
-  containerCart.deleteProducInTheCart(req.params.num, req.params.id_prod);
+frontHome.get("/client/:num", (req, res) => {
+  let objeto = containerCart.getById(req.params.num);
+console.log(objeto);
 
-  resp.json({
-    CartEliminate: containerCart.deleteProducInTheCart(),
-  });
+  res.render('carts-product', {ProductsInTheCart: containerCart.getById(req.params.num)  });
 });
+
+
+
+
+
+// ESTE GET ES PARA EL ADMINISTRADOR PARA QUE VEA TODOS LOS CARRITOS Y QUE PROD TIENE CADA UNO. OJOO!!!!
+// frontHome.get("/administrator/cart", (req, resp) => {
+//   resp.render('main', {AllCartsAvailable: containerCart.readCart() });
+// });

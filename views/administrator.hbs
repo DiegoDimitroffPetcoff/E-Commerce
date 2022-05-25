@@ -1,0 +1,51 @@
+<head>
+</head>
+<body class="container">
+    <header>
+        {{>header}}
+    </header>
+    
+    <main>
+       
+         <h2>List of my most suggested League Champions</h2>
+
+{{!-- {{#if AllProducs}}
+    <ul>
+        {{#each AllProducs}}
+        <li class="{{this.title}}">{{this.title}}</li>
+        <li class="{{this.title}}">{{this.descripcion}}</li>
+        {{/each}}
+    </ul>
+{{/if}} --}}
+<table class="table table-hover table-dark">
+  <thead>
+  <tr>
+      <th scope="col">ID</th>
+      <th scope="col">Object</th>
+      <th scope="col">Descripcion</th>
+      <th scope="col">Price</th>
+    </tr>
+  </thead>
+  <tbody>
+  {{#each AllProducs}}
+    <tr>
+      <th scope="row">{{this.id}}</th>
+      <td>{{this.title}}</td>
+      <td>"{{this.descripcion}}"</td>
+      <td>${{this.price}}</td>
+      <td><img src="../src/imagen/sun-lingyan-_H0fjILH5Vw-unsplash.jpg" class="img-thumbnail" alt="..."></td>
+    </tr>
+    {{/each}}
+  </tbody>
+</table>
+<img src="../src/imagen/sun-lingyan-_H0fjILH5Vw-unsplash.jpg" class="img-thumbnail" alt="...">
+    </main>
+
+
+
+
+
+
+    <footer>
+       {{>footer}}
+    </footer>
