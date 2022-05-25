@@ -15,9 +15,33 @@ class ProductosDaosArchivos extends ContenedorArchivo {
 const productos = new ProductosDaosArchivos();
 
 router.get("/", (req, resp) => {
-  resp.json({ productos: productos.read()});
+  resp.json({ Productos: productos.read() });
+});
+
+router.get("/:num", (req, res) => {
+  res.json({ Producto: productos.getById(req.params.num) });
+});
+
+
+router.post("/", (req, res) => {
+  res.send({ ProductoGuardado: productos.save(req.body) });
+});
+
+router.delete("/:num", (req, resp) => {
+  resp.json({ ProductoEliminado: productos.deleteById(req.params.num) });
+});
+
+router.put("/:num", (req, resp) => {
+  resp.json({
+    EditedProduct: productos.edit(
+      req.params.num,
+      req.body.title,
+      req.body.price,
+      req.body.descripcion,
+      req.body.foto,
+      req.body.stock
+    ),
+  });
 });
 
 module.exports = router;
-
-

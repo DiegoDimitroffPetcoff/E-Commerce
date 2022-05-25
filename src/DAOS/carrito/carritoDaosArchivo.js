@@ -1,7 +1,7 @@
 const fs = require("fs");
 const express = require("express");
 const app = express();
-const cart = express.Router();
+const router = express.Router();
 app.use(express.static("public"));
 app.use("/static", express.static(__dirname + "/public"));
 
@@ -9,14 +9,16 @@ const { ContenedorArchivo } = require("../../contenedores/contenedorArchivos");
 
 class CarritoDaosArchivos extends ContenedorArchivo {
   constructor() {
-    super("./carrito/cartStorage.txt");
+    super("./cartStorage.txt");
   }
+  
 }
 const carrito = new CarritoDaosArchivos();
-console.log(carrito.read());
+const todo = carrito.read()
+console.log(todo);
 
-cart.get("/", (req, resp) => {
-  resp.json({ productos: carrito.read()});
+router.get("/", (req, resp) => {
+  resp.json({ productos: todo});
 });
 
-module.exports = cart;
+module.exports = router;
